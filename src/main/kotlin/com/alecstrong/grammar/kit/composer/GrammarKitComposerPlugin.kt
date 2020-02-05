@@ -10,9 +10,9 @@ import java.lang.IllegalStateException
 open class GrammarKitComposerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply(GrammarKit::class.java)
-        project.file("src/main/kotlin").forBnfFiles { bnfFile ->
+        project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
             val outputDirectory = project.file("gen")
-            val rootDir = project.file("src/main/kotlin")
+            val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
             val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
 
             val compose = project.tasks.register("createComposable${name}Grammar", BnfExtenderTask::class.java) {

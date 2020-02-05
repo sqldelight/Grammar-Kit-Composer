@@ -18,8 +18,8 @@ internal fun getOutputs(
   bnf: File,
   root: File
 ): Outputs {
-  val outputPackage = bnf.parentFile.toRelativeString(root).replace('/', '.')
-  fun outputDirectory(): File = File(outputDirectory, outputPackage.replace('.', '/'))
+  val outputPackage = bnf.parentFile.toRelativeString(root).replace(File.separatorChar, '.')
+  fun outputDirectory(): File = File(outputDirectory, outputPackage.replace('.', File.separatorChar))
   val outputBnf = File(outputDirectory().path, bnf.name)
 
   return Outputs(

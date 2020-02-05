@@ -22,7 +22,7 @@ open class BnfExtenderTask : SourceTask() {
     source.files.forEach {
       GrammarFile(
           file = it,
-          outputs = getOutputs(outputDirectory, it, project.file("src/main/kotlin"))
+          outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin"))
       ).generateComposableGrammarFile()
     }
   }
