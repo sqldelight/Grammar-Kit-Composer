@@ -1,0 +1,44 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+  }
+
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61"
+  }
+}
+
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'java-gradle-plugin'
+
+gradlePlugin {
+  plugins {
+    grammarKitComposer {
+      id = 'com.alecstrong.grammar.kit.composer'
+      implementationClass = 'com.alecstrong.grammar.kit.composer.GrammarKitComposerPlugin'
+    }
+  }
+}
+
+repositories {
+  mavenCentral()
+  maven { url 'https://jitpack.io' }
+  jcenter()
+}
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.61"
+  implementation "com.squareup:kotlinpoet:1.5.0"
+  implementation "com.github.hurricup:gradle-grammar-kit-plugin:2019.2"
+  implementation gradleApi()
+}
+
+compileKotlin {
+  kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+  kotlinOptions.jvmTarget = "1.8"
+}
+
+apply from: "$rootDir/gradle/gradle-mvn-push.gradle"

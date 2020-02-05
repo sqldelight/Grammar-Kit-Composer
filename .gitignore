@@ -1,0 +1,8 @@
+*.iml
+gen/
+out/
+.gradle/
+.idea/
+lib/
+build/
+.DS_Store
