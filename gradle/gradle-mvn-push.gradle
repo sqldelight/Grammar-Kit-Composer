@@ -26,12 +26,12 @@ def isReleaseBuild() {
 
 def getReleaseRepositoryUrl() {
   return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL :
-      "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+          "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
   return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL :
-      "https://oss.sonatype.org/content/repositories/snapshots/"
+          "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 def getRepositoryUsername() {
@@ -40,10 +40,6 @@ def getRepositoryUsername() {
 
 def getRepositoryPassword() {
   return hasProperty('SONATYPE_NEXUS_PASSWORD') ? SONATYPE_NEXUS_PASSWORD : ""
-}
-
-def getGpgKey() {
-  return hasProperty('signingKey') ? signingKey : ""
 }
 
 def configurePom(pom) {
@@ -111,17 +107,12 @@ afterEvaluate { project ->
   }
 
   signing {
-    required { isReleaseBuild() }
-
-    def signingKey = getGpgKey()
-    if (!signingKey.isEmpty() && isReleaseBuild()) {
-      useInMemoryPgpKeys(signingKey, "")
-      sign configurations.archives
-    }
+    required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
   }
 
   if (project.getPlugins().hasPlugin('com.android.application') ||
-      project.getPlugins().hasPlugin('com.android.library')) {
+          project.getPlugins().hasPlugin('com.android.library')) {
     task install(type: Upload, dependsOn: assemble) {
       repositories.mavenInstaller {
         configuration = configurations.archives
@@ -157,10 +148,6 @@ afterEvaluate { project ->
     }
   }
 
-  if (project.getPlugins().hasPlugin('org.jetbrains.intellij') &&
-      !getPluginToken().isEmpty()) {
-  }
-
   if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
       tasks.withType(Javadoc) {
@@ -171,7 +158,7 @@ afterEvaluate { project ->
 
   artifacts {
     if (project.getPlugins().hasPlugin('com.android.application') ||
-        project.getPlugins().hasPlugin('com.android.library')) {
+            project.getPlugins().hasPlugin('com.android.library')) {
       archives androidSourcesJar
       archives androidJavadocsJar
     } else {
