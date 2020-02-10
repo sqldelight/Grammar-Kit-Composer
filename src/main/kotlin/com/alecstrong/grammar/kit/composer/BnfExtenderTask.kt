@@ -126,7 +126,7 @@ private class GrammarFile(
     imports: MutableSet<String>
   ): String {
     val keyFinder = Regex("([^a-zA-Z_]|^)(${rules.keys.joinToString("|")})([^a-zA-Z_0-9]|$)")
-    val pinFinder = Regex("[\\s\\S]+pin *= *([0-9]*)[\\s\\S]+")
+    val pinFinder = Regex("pin[\\s\\S]+=[^\n\r]*")
     val recoverWhileFinder = Regex("[\\s\\S]+recoverWhile *= *([a-zA-Z_]*)[\\s\\S]+")
 
     val builder = StringBuilder("root ::= ${firstRule.extensionReplacements(keyFinder)}\n")
@@ -141,8 +141,8 @@ private class GrammarFile(
       builder.append("fake $rule ::= $definition\n")
           .append("${rule}_real ::= ${definition.extensionReplacements(keyFinder)} {\n" +
               "  elementType = $rule\n")
-      pinFinder.matchEntire(definition)?.groupValues?.getOrNull(1)?.let {
-        builder.append("  pin=$it\n")
+      pinFinder.find(definition)?.groupValues?.getOrNull(0)?.let {
+        builder.append("  $it\n")
       }
       recoverWhileFinder.matchEntire(definition)?.groupValues?.getOrNull(1)?.let {
         builder.append("  recoverWhile=$it\n")

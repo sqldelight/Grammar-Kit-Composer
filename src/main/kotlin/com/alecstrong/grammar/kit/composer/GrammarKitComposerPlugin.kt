@@ -23,7 +23,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
                 it.description = "Generate composable grammars from .bnf files."
             }
 
-            val gen = project.tasks.create("generate${name}Parser", GenerateParser::class.java) {generateParserTask ->
+            val gen = project.tasks.create("generate${name}Parser", GenerateParser::class.java) { generateParserTask ->
                 val outputs = getOutputs(
                     bnf = bnfFile,
                     outputDirectory = outputDirectory,
