@@ -65,7 +65,7 @@ private class GrammarFile(
       generatedUtilSuperclass = ClassName.bestGuess(it)
     }
 
-    val parentParser = Regex("[\\s\\S]+overrides=\"([a-zA-Z.]*)\"[\\s\\S]+")
+    val parentParser = Regex("[\\s\\S]+overrides=\"([a-zA-Z.0-9_]*)\"[\\s\\S]+")
     parentParser.matchEntire(header)?.groupValues?.getOrNull(1)?.run {
       overrides = ClassName.bestGuess(this)
     }
@@ -156,10 +156,10 @@ private class GrammarFile(
     fun String.matcher() = replace(keysRegex) { match ->
       "${match.groupValues[1]}<<${match.groupValues[2].toFunctionName()} ${match.groupValues[2]}_real>>${match.groupValues[3]}"
     }
-    // We have to do it twice because the matcher doesn't catch three adjacent rules.
-    if (endsWith("}")) {
-      return substring(0, indexOf("{") - 1).matcher().matcher()
+    if (trim().endsWith("}")) {
+      return substring(0, lastIndexOf("{") - 1).matcher().matcher()
     }
+    // We have to do it twice because the matcher doesn't catch three adjacent rules.
     return matcher().matcher()
   }
 
