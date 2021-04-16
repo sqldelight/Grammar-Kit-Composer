@@ -20,7 +20,7 @@ internal fun getOutputs(
 ): Outputs {
   val outputPackage = bnf.parentFile.toRelativeString(root).replace(File.separatorChar, '.')
   fun outputDirectory(): File = File(outputDirectory, outputPackage.replace('.', File.separatorChar))
-  val outputBnf = File(outputDirectory().path, bnf.name)
+  val outputBnf = File(outputDirectory().path, "${bnf.nameWithoutExtension}_gen.bnf")
 
   return Outputs(
       outputFile = outputBnf,

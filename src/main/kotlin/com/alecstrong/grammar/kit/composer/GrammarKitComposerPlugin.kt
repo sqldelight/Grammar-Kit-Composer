@@ -2,18 +2,18 @@ package com.alecstrong.grammar.kit.composer
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSetContainer
 import org.jetbrains.grammarkit.GrammarKit
 import org.jetbrains.grammarkit.tasks.GenerateParser
 import java.io.File
-import java.lang.IllegalStateException
 
 open class GrammarKitComposerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply(GrammarKit::class.java)
         project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
-            val outputDirectory = project.file("gen")
             val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
             val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
+            val outputDirectory = File(project.buildDir, "grammars${File.separatorChar}$name")
 
             val compose = project.tasks.register("createComposable${name}Grammar", BnfExtenderTask::class.java) {
                 it.source(bnfFile)
@@ -39,8 +39,15 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
                 generateParserTask.group = "grammar"
             }
 
+            (project.extensions.getByName("sourceSets") as SourceSetContainer)
+                .getByName("main").java.srcDir(outputDirectory.relativeTo(project.projectDir))
+
             project.tasks.named("compileKotlin").configure {
                 it.dependsOn(gen)
+            }
+
+            project.tasks.configureEach {
+                if (it.name.contains("dokka") || it.name == "sourcesJar") it.dependsOn(gen)
             }
         }
     }
