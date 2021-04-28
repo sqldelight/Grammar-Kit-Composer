@@ -3,7 +3,6 @@ package com.alecstrong.grammar.kit.composer
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier.INTERNAL
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -21,8 +20,8 @@ open class BnfExtenderTask : SourceTask() {
   fun execute(inputs: IncrementalTaskInputs) {
     source.files.forEach {
       GrammarFile(
-          file = it,
-          outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin"))
+        file = it,
+        outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin"))
       ).generateComposableGrammarFile()
     }
   }
@@ -77,7 +76,7 @@ private class GrammarFile(
     val imports = mutableSetOf<String>()
 
     if (overrides != null) {
-      imports.add("\"static ${overrides}.*\"")
+      imports.add("\"static $overrides.*\"")
     }
 
     val newRules = generateRules(firstRule, rulesToExtend, imports)
@@ -90,27 +89,29 @@ private class GrammarFile(
     }
 
     header = "{\n  parserUtilClass=\"${outputs.outputPackage}.${file.parserUtilName()}\"\n" +
-        "  parserClass=\"${outputs.parserClass}\"\n" +
-        "  elementTypeHolderClass=\"${outputs.psiPackage}.${file.elementTypeHolderName()}\"\n" +
-        "  psiPackage=\"${outputs.psiPackage}\"\n" +
-        "  psiImplPackage=\"${outputs.psiPackage}.impl\"\n" +
-        header
+      "  parserClass=\"${outputs.parserClass}\"\n" +
+      "  elementTypeHolderClass=\"${outputs.psiPackage}.${file.elementTypeHolderName()}\"\n" +
+      "  psiPackage=\"${outputs.psiPackage}\"\n" +
+      "  psiImplPackage=\"${outputs.psiPackage}.impl\"\n" +
+      header
 
     val keyFinder = Regex("([^a-zA-Z_]|^)(${unextendableSubclasses(header, rules.keys).joinToString("|")})([^a-zA-Z_]|$)")
     val unextendableRuleDefinitions = rules.filterKeys { it in unextendableRules }
-        .map { "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}" }
-        .joinToString("\n")
+      .map { "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}" }
+      .joinToString("\n")
 
     outputs.outputFile.createIfAbsent()
-        .writeText("$header\n$newRules\n$unextendableRuleDefinitions")
+      .writeText("$header\n$newRules\n$unextendableRuleDefinitions")
 
     File(outputs.outputDirectory.path, "${file.parserUtilName()}.kt")
-        .createIfAbsent()
-        .writeText(generateParserUtil(
-            rules = rulesToExtend,
-            inputFile = file,
-            superclass = generatedUtilSuperclass
-        ))
+      .createIfAbsent()
+      .writeText(
+        generateParserUtil(
+          rules = rulesToExtend,
+          inputFile = file,
+          superclass = generatedUtilSuperclass
+        )
+      )
   }
 
   private fun File.createIfAbsent() = apply {
@@ -139,8 +140,10 @@ private class GrammarFile(
       }
 
       builder.append("fake $rule ::= $definition\n")
-          .append("${rule}_real ::= ${definition.extensionReplacements(keyFinder)} {\n" +
-              "  elementType = $rule\n")
+        .append(
+          "${rule}_real ::= ${definition.extensionReplacements(keyFinder)} {\n" +
+            "  elementType = $rule\n"
+        )
       pinFinder.find(definition)?.groupValues?.getOrNull(0)?.let {
         builder.append("  $it\n")
       }
@@ -202,7 +205,7 @@ private class GrammarFile(
     superclass: ClassName
   ): String {
     val parserType = ClassName("com.intellij.lang.parser", "GeneratedParserUtilBase")
-        .nestedClass("Parser")
+      .nestedClass("Parser")
     val elementTypeHolder = ClassName(outputs.psiPackage, inputFile.elementTypeHolderName())
     val astNodeType = ClassName("com.intellij.lang", "ASTNode")
     val psiElementType = ClassName("com.intellij.psi", "PsiElement")
@@ -214,55 +217,64 @@ private class GrammarFile(
     val resetMethod = FunSpec.builder("reset")
 
     return FileSpec.builder(outputs.outputPackage, inputFile.parserUtilName())
-        .addType(TypeSpec.objectBuilder(inputFile.parserUtilName())
-            .superclass(superclass)
-            .addProperty(PropertySpec.builder(
-                name = "createElement",
-                type = LambdaTypeName.get(
-                    parameters = *arrayOf(astNodeType),
-                    returnType = psiElementType
-                ))
-                .mutable(true)
-                .initializer("{ %T.Factory.createElement(it) }", elementTypeHolder)
-                .build())
-            .apply {
-              rules.forEach { (key, definition) ->
-                addProperty(PropertySpec.builder(key, parserType.copy(nullable = true))
-                    .mutable(true)
-                    .initializer("null")
-                    .build())
+      .addType(
+        TypeSpec.objectBuilder(inputFile.parserUtilName())
+          .superclass(superclass)
+          .addProperty(
+            PropertySpec.builder(
+              name = "createElement",
+              type = LambdaTypeName.get(
+                parameters = *arrayOf(astNodeType),
+                returnType = psiElementType
+              )
+            )
+              .mutable(true)
+              .initializer("{ %T.Factory.createElement(it) }", elementTypeHolder)
+              .build()
+          )
+          .apply {
+            rules.forEach { (key, definition) ->
+              addProperty(
+                PropertySpec.builder(key, parserType.copy(nullable = true))
+                  .mutable(true)
+                  .initializer("null")
+                  .build()
+              )
 
-                resetMethod.addStatement("$key = null")
+              resetMethod.addStatement("$key = null")
 
-                addFunction(FunSpec.builder(key.toFunctionName())
-                    .addAnnotation(JvmStatic::class)
-                    .addParameter("builder", ClassName("com.intellij.lang", "PsiBuilder"))
-                    .addParameter("level", Int::class)
-                    .addParameter(key, parserType)
-                    .returns(Boolean::class)
-                    .addStatement("return (this.$key ?: $key).parse(builder, level)")
-                    .build())
-
-                overrides?.let { overrides ->
-                  overrideFinder.matchEntire(definition)
-                      ?.groupValues?.getOrNull(1)
-                      ?.let {
-                        if (it == "true") {
-                          overrideMethod.addStatement(
-                              "%T.$key = Parser { psiBuilder, i -> " +
-                                  "${key.toFunctionName()}(psiBuilder, i, %T.${key}_real_parser_)" +
-                                  " }",
-                              overrides.util(), outputs.parserClass
-                          )
-                        }
-                      }
-                }
-              }
-
-              addFunction(resetMethod.build())
+              addFunction(
+                FunSpec.builder(key.toFunctionName())
+                  .addAnnotation(JvmStatic::class)
+                  .addParameter("builder", ClassName("com.intellij.lang", "PsiBuilder"))
+                  .addParameter("level", Int::class)
+                  .addParameter(key, parserType)
+                  .returns(Boolean::class)
+                  .addStatement("return (this.$key ?: $key).parse(builder, level)")
+                  .build()
+              )
 
               overrides?.let { overrides ->
-                overrideMethod.addCode("""
+                overrideFinder.matchEntire(definition)
+                  ?.groupValues?.getOrNull(1)
+                  ?.let {
+                    if (it == "true") {
+                      overrideMethod.addStatement(
+                        "%T.$key = Parser { psiBuilder, i -> " +
+                          "${key.toFunctionName()}(psiBuilder, i, %T.${key}_real_parser_)" +
+                          " }",
+                        overrides.util(), outputs.parserClass
+                      )
+                    }
+                  }
+              }
+            }
+
+            addFunction(resetMethod.build())
+
+            overrides?.let { overrides ->
+              overrideMethod.addCode(
+                """
                     val currentCreateElement = %T.createElement
                     %T.createElement = {
                       try {
@@ -271,14 +283,17 @@ private class GrammarFile(
                         currentCreateElement(it)
                       }
                     }
-                  """.trimIndent(), overrides.util(), overrides.util(), AssertionError::class.asTypeName())
+                """.trimIndent(),
+                overrides.util(), overrides.util(), AssertionError::class.asTypeName()
+              )
 
-                addFunction(overrideMethod.build())
-              }
+              addFunction(overrideMethod.build())
             }
-            .build())
-        .build()
-        .toString()
+          }
+          .build()
+      )
+      .build()
+      .toString()
   }
 
   companion object {
