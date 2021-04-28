@@ -3,8 +3,6 @@ package com.alecstrong.grammar.kit.composer
 import com.squareup.kotlinpoet.ClassName
 import java.io.File
 
-
-
 internal data class Outputs(
   val outputFile: File,
   val psiPackage: String,
@@ -23,10 +21,10 @@ internal fun getOutputs(
   val outputBnf = File(outputDirectory().path, "${bnf.nameWithoutExtension}_gen.bnf")
 
   return Outputs(
-      outputFile = outputBnf,
-      psiPackage = "${outputPackage}.psi",
-      outputPackage = outputPackage,
-      parserClass = ClassName(outputPackage, "${bnf.nameWithoutExtension.capitalize()}Parser"),
-      outputDirectory = outputDirectory()
+    outputFile = outputBnf,
+    psiPackage = "$outputPackage.psi",
+    outputPackage = outputPackage,
+    parserClass = ClassName(outputPackage, "${bnf.nameWithoutExtension.capitalize()}Parser"),
+    outputDirectory = outputDirectory()
   )
 }
