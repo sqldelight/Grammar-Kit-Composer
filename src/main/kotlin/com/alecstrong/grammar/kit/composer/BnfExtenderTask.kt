@@ -224,7 +224,7 @@ private class GrammarFile(
             PropertySpec.builder(
               name = "createElement",
               type = LambdaTypeName.get(
-                parameters = *arrayOf(astNodeType),
+                parameters = arrayOf(astNodeType),
                 returnType = psiElementType
               )
             )
