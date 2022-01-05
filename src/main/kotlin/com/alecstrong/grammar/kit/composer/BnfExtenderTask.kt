@@ -10,14 +10,14 @@ import com.squareup.kotlinpoet.asTypeName
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.work.InputChanges
 import java.io.File
 
 open class BnfExtenderTask : SourceTask() {
   @get:OutputDirectory lateinit var outputDirectory: File
 
   @TaskAction
-  fun execute(inputs: IncrementalTaskInputs) {
+  fun execute(inputs: InputChanges) {
     source.files.forEach {
       GrammarFile(
         file = it,
@@ -47,7 +47,7 @@ private class GrammarFile(
         val ruleName = line.substring(0 until ruleSeparatorIndex).trim()
         if (currentRule.isNotEmpty()) {
           // End the old rule if there was one.
-          rules.put(currentRule, currentRuleDefinition)
+          rules[currentRule] = currentRuleDefinition
         } else {
           firstRule = ruleName
           header = "{" + currentRuleDefinition.substringAfter('{')
@@ -69,7 +69,7 @@ private class GrammarFile(
       overrides = ClassName.bestGuess(this)
     }
 
-    rules.put(currentRule, currentRuleDefinition)
+    rules[currentRule] = currentRuleDefinition
 
     val unextendableRules = unextendableRules(header, rules.keys)
     val rulesToExtend = rules.filterNot { it.key in unextendableRules }
@@ -134,7 +134,7 @@ private class GrammarFile(
     for ((rule, definition) in rules) {
 
       val definition = definition.replace(Regex("\\{([a-zA-Z_]*)}")) {
-        val externalRule = it.groupValues.get(1)
+        val externalRule = it.groupValues[1]
         imports.add("\"static ${overrides}Util.${externalRule.toFunctionName()}\"")
         return@replace "<<${externalRule.toFunctionName()} <<${externalRule}_real>>>>"
       }
@@ -179,7 +179,7 @@ private class GrammarFile(
   }
 
   private fun String.toCustomFunction(): String {
-    return replace(snakeCaseRegex) { matchResult -> matchResult.value.trim('_').capitalize() }
+    return replace(snakeCaseRegex) { matchResult -> matchResult.value.trim('_').replaceFirstChar { it.titlecase() } }
   }
 
   private fun unextendableRules(headerText: String, rules: Collection<String>): Sequence<String> {
@@ -195,9 +195,9 @@ private class GrammarFile(
     }.distinct()
   }
 
-  private fun File.parserUtilName() = "${nameWithoutExtension.capitalize()}ParserUtil"
+  private fun File.parserUtilName() = "${nameWithoutExtension.replaceFirstChar { it.titlecase() }}ParserUtil"
 
-  private fun File.elementTypeHolderName() = "${nameWithoutExtension.capitalize()}Types"
+  private fun File.elementTypeHolderName() = "${nameWithoutExtension.replaceFirstChar { it.titlecase() }}Types"
 
   private fun generateParserUtil(
     rules: Map<String, String>,
