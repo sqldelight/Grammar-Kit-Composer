@@ -24,7 +24,7 @@ internal fun getOutputs(
     outputFile = outputBnf,
     psiPackage = "$outputPackage.psi",
     outputPackage = outputPackage,
-    parserClass = ClassName(outputPackage, "${bnf.nameWithoutExtension.capitalize()}Parser"),
+    parserClass = ClassName(outputPackage, "${bnf.nameWithoutExtension.replaceFirstChar { it.titlecase() }}Parser"),
     outputDirectory = outputDirectory()
   )
 }
