@@ -1,14 +1,13 @@
 buildscript {
   repositories {
     mavenCentral()
-    maven { url 'https://dl.bintray.com/kotlin/kotlinx' }
   }
 
   dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
     classpath "com.diffplug.spotless:spotless-plugin-gradle:5.12.4"
     classpath "com.vanniktech:gradle-maven-publish-plugin:0.14.2"
-    classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.4.30"
+    classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.6.10"
   }
 }
 
@@ -40,8 +39,8 @@ repositories {
 }
 
 dependencies {
-  implementation "com.squareup:kotlinpoet:1.8.0"
-  implementation "gradle.plugin.org.jetbrains.intellij.plugins:gradle-grammarkit-plugin:2020.1.4"
+  implementation "com.squareup:kotlinpoet:1.10.2"
+  implementation "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin:2021.2.1"
 
   compileOnly gradleApi()
 }

@@ -3,13 +3,13 @@ package com.alecstrong.grammar.kit.composer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSetContainer
-import org.jetbrains.grammarkit.GrammarKit
-import org.jetbrains.grammarkit.tasks.GenerateParser
+import org.jetbrains.grammarkit.GrammarKitPlugin
+import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import java.io.File
 
 open class GrammarKitComposerPlugin : Plugin<Project> {
   override fun apply(project: Project) {
-    project.pluginManager.apply(GrammarKit::class.java)
+    project.pluginManager.apply(GrammarKitPlugin::class.java)
     project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
       val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
       val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
@@ -23,7 +23,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         it.description = "Generate composable grammars from .bnf files."
       }
 
-      val gen = project.tasks.create("generate${name}Parser", GenerateParser::class.java) { generateParserTask ->
+      val gen = project.tasks.create("generate${name}Parser", GenerateParserTask::class.java) { generateParserTask ->
         val outputs = getOutputs(
           bnf = bnfFile,
           outputDirectory = outputDirectory,
@@ -31,11 +31,11 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         )
 
         generateParserTask.dependsOn(compose)
-        generateParserTask.source = outputs.outputFile
-        generateParserTask.targetRoot = outputDirectory
-        generateParserTask.pathToParser = outputs.parserClass.toString().replace('.', File.separatorChar)
-        generateParserTask.pathToPsiRoot = outputs.psiPackage.replace('.', File.separatorChar)
-        generateParserTask.purgeOldFiles = true
+        generateParserTask.source.set(outputs.outputFile.path)
+        generateParserTask.targetRoot.set(outputDirectory.path)
+        generateParserTask.pathToParser.set(outputs.parserClass.toString().replace('.', File.separatorChar))
+        generateParserTask.pathToPsiRoot.set(outputs.psiPackage.replace('.', File.separatorChar))
+        generateParserTask.purgeOldFiles.set(true)
         generateParserTask.group = "grammar"
       }
 
