@@ -261,7 +261,7 @@ private class GrammarFile(
                     if (it == "true") {
                       overrideMethod.addStatement(
                         "%T.$key = Parser { psiBuilder, i -> " +
-                          "${key.toFunctionName()}(psiBuilder, i, %T.${key}_real_parser_)" +
+                          "$key?.parse(psiBuilder, i) ?: %T.${key}_real(psiBuilder, i)" +
                           " }",
                         overrides.util(), outputs.parserClass
                       )
