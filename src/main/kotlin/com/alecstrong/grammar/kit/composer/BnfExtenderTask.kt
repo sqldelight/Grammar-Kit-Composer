@@ -215,6 +215,7 @@ private class GrammarFile(
     fun ClassName.util() = ClassName(packageName, "${simpleName}Util")
 
     val resetMethod = FunSpec.builder("reset")
+      .addStatement("createElement = { %T.Factory.createElement(it) }", elementTypeHolder)
 
     return FileSpec.builder(outputs.outputPackage, inputFile.parserUtilName())
       .addType(
