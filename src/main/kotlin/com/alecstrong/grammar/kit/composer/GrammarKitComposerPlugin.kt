@@ -47,7 +47,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
       }
 
       project.tasks.configureEach {
-        if (it.name.contains("dokka") || it.name == "sourcesJar") it.dependsOn(gen)
+        if (it.name.contains("dokka") || it.name == "sourcesJar" || it.name == "javaSourcesJar" ) it.dependsOn(gen)
       }
     }
   }
