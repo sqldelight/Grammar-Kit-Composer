@@ -73,13 +73,14 @@ private class GrammarFile(
 
     val unextendableRules = unextendableRules(header, rules.keys)
     val rulesToExtend = rules.filterNot { it.key in unextendableRules }
+    val privateRules = rules.keys.filter { it.startsWith("private") }.map { it.substringAfter("private ") }
     val imports = mutableSetOf<String>()
 
     if (overrides != null) {
       imports.add("\"static $overrides.*\"")
     }
 
-    val newRules = generateRules(firstRule, rulesToExtend, imports)
+    val newRules = generateRules(firstRule, rulesToExtend, imports, privateRules)
 
     header = header.lines().filterNot { it.contains("parserUtilClass=") }.drop(1).joinToString("\n")
     header = if (header.contains("parserImports=[")) {
@@ -97,7 +98,13 @@ private class GrammarFile(
 
     val keyFinder = Regex("([^a-zA-Z_]|^)(${unextendableSubclasses(header, rules.keys).joinToString("|")})([^a-zA-Z_]|$)")
     val unextendableRuleDefinitions = rules.filterKeys { it in unextendableRules }
-      .map { "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}" }
+      .map {
+        if (it.key.startsWith("private")) {
+          generateRule(it.key, it.value, rulesToExtend, privateRules, isPrivate = true)
+        } else {
+          "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}"
+        }
+      }
       .joinToString("\n")
 
     outputs.outputFile.createIfAbsent()
@@ -124,40 +131,59 @@ private class GrammarFile(
   private fun generateRules(
     firstRule: String,
     rules: Map<String, String>,
-    imports: MutableSet<String>
+    imports: MutableSet<String>,
+    privateRules: Collection<String>,
   ): String {
-    val keyFinder = Regex("([^a-zA-Z_]|^)(${rules.keys.joinToString("|")})([^a-zA-Z_0-9]|$)")
-    val pinFinder = Regex("pin[\\s\\S]+=[^\n\r]*")
-    val recoverWhileFinder = Regex("[\\s\\S]+recoverWhile *= *([a-zA-Z_]*)[\\s\\S]+")
+    val keyFinder = Regex("([^a-zA-Z_]|^)(${(rules.keys + privateRules).joinToString("|")})([^a-zA-Z_0-9]|$)")
 
-    val builder = StringBuilder("root ::= ${firstRule.extensionReplacements(keyFinder)}\n")
+    val builder = StringBuilder("root ::= ${firstRule.extensionReplacements(keyFinder, privateRules)}\n")
     for ((rule, definition) in rules) {
-
-      val definition = definition.replace(Regex("\\{([a-zA-Z_]*)}")) {
-        val externalRule = it.groupValues[1]
-        imports.add("\"static ${overrides}Util.${externalRule.toFunctionName()}\"")
-        return@replace "<<${externalRule.toFunctionName()} <<${externalRule}_real>>>>"
-      }
-
-      builder.append("fake $rule ::= $definition\n")
-        .append(
-          "${rule}_real ::= ${definition.extensionReplacements(keyFinder)} {\n" +
-            "  elementType = $rule\n"
-        )
-      pinFinder.find(definition)?.groupValues?.getOrNull(0)?.let {
-        builder.append("  $it\n")
-      }
-      recoverWhileFinder.matchEntire(definition)?.groupValues?.getOrNull(1)?.let {
-        builder.append("  recoverWhile=$it\n")
-      }
-      builder.append("}\n")
+      builder.append(generateRule(rule, definition, rules, privateRules, imports))
     }
     return builder.toString()
   }
 
-  private fun String.extensionReplacements(keysRegex: Regex): String {
+  private fun generateRule(
+    rule: String,
+    definition: String,
+    rules: Map<String, String>,
+    privateRules: Collection<String>,
+    imports: MutableSet<String> = mutableSetOf(),
+    isPrivate: Boolean = false
+  ): String {
+    val keyFinder = Regex("([^a-zA-Z_]|^)(${(rules.keys + privateRules).joinToString("|")})([^a-zA-Z_0-9]|$)")
+    val pinFinder = Regex("pin[\\s\\S]+=[^\n\r]*")
+    val recoverWhileFinder = Regex("[\\s\\S]+recoverWhile *= *([a-zA-Z_]*)[\\s\\S]+")
+    val builder = StringBuilder()
+    val definition = definition.replace(Regex("\\{([a-zA-Z_]*)}")) {
+      val externalRule = it.groupValues[1]
+      if (!isPrivate) imports.add("\"static ${overrides}Util.${externalRule.toFunctionName()}\"")
+      return@replace "<<${externalRule.toFunctionName()} <<${externalRule}_real>>>>"
+    }
+
+    builder.append("fake $rule ::= $definition\n")
+      .append(
+        "${rule}_real ::= ${definition.extensionReplacements(keyFinder, privateRules)} {\n" +
+          "  elementType = ${rule.substringAfter("private ")}\n"
+      )
+    pinFinder.find(definition)?.groupValues?.getOrNull(0)?.let {
+      builder.append("  $it\n")
+    }
+    recoverWhileFinder.matchEntire(definition)?.groupValues?.getOrNull(1)?.let {
+      builder.append("  recoverWhile=${it.extensionReplacements(keyFinder, privateRules)}\n")
+    }
+    builder.append("}\n")
+
+    return builder.toString()
+  }
+
+  private fun String.extensionReplacements(keysRegex: Regex, privateRules: Collection<String>): String {
     fun String.matcher() = replace(keysRegex) { match ->
-      "${match.groupValues[1]}<<${match.groupValues[2].toFunctionName()} ${match.groupValues[2]}_real>>${match.groupValues[3]}"
+      if (match.groupValues[2] in privateRules) {
+        "${match.groupValues[1]}${match.groupValues[2]}_real${match.groupValues[3]}"
+      } else {
+        "${match.groupValues[1]}<<${match.groupValues[2].toFunctionName()} ${match.groupValues[2]}_real>>${match.groupValues[3]}"
+      }
     }
     if (trim().endsWith("}")) {
       return substring(0, lastIndexOf("{") - 1).matcher().matcher()
