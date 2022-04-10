@@ -82,6 +82,17 @@ private class GrammarFile(
 
     val newRules = generateRules(firstRule, rulesToExtend, imports, privateRules)
 
+    val keyFinder = Regex("([^a-zA-Z_]|^)(${unextendableSubclasses(header, rules.keys).joinToString("|")})([^a-zA-Z_]|$)")
+    val unextendableRuleDefinitions = rules.filterKeys { it in unextendableRules }
+      .map {
+        if (it.key.startsWith("private")) {
+          generateRule(it.key, it.value, rulesToExtend, privateRules, imports)
+        } else {
+          "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}"
+        }
+      }
+      .joinToString("\n")
+
     header = header.lines().filterNot { it.contains("parserUtilClass=") }.drop(1).joinToString("\n")
     header = if (header.contains("parserImports=[")) {
       header.replace("parserImports=[", imports.joinToString(separator = "\n", prefix = "parserImports = [\n").prependIndent("  "))
@@ -95,17 +106,6 @@ private class GrammarFile(
       "  psiPackage=\"${outputs.psiPackage}\"\n" +
       "  psiImplPackage=\"${outputs.psiPackage}.impl\"\n" +
       header
-
-    val keyFinder = Regex("([^a-zA-Z_]|^)(${unextendableSubclasses(header, rules.keys).joinToString("|")})([^a-zA-Z_]|$)")
-    val unextendableRuleDefinitions = rules.filterKeys { it in unextendableRules }
-      .map {
-        if (it.key.startsWith("private")) {
-          generateRule(it.key, it.value, rulesToExtend, privateRules, isPrivate = true)
-        } else {
-          "${it.key} ::= ${it.value.subclassReplacements(keyFinder)}"
-        }
-      }
-      .joinToString("\n")
 
     outputs.outputFile.createIfAbsent()
       .writeText("$header\n$newRules\n$unextendableRuleDefinitions")
@@ -148,8 +148,7 @@ private class GrammarFile(
     definition: String,
     rules: Map<String, String>,
     privateRules: Collection<String>,
-    imports: MutableSet<String> = mutableSetOf(),
-    isPrivate: Boolean = false
+    imports: MutableSet<String>,
   ): String {
     val keyFinder = Regex("([^a-zA-Z_]|^)(${(rules.keys + privateRules).joinToString("|")})([^a-zA-Z_0-9]|$)")
     val pinFinder = Regex("pin[\\s\\S]+=[^\n\r]*")
@@ -157,7 +156,7 @@ private class GrammarFile(
     val builder = StringBuilder()
     val definition = definition.replace(Regex("\\{([a-zA-Z_]*)}")) {
       val externalRule = it.groupValues[1]
-      if (!isPrivate) imports.add("\"static ${overrides}Util.${externalRule.toFunctionName()}\"")
+      imports.add("\"static ${overrides}Util.${externalRule.toFunctionName()}\"")
       return@replace "<<${externalRule.toFunctionName()} <<${externalRule}_real>>>>"
     }
 
