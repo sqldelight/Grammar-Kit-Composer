@@ -46,6 +46,14 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         it.dependsOn(gen)
       }
 
+      if (project.plugins.hasPlugin("com.google.devtools.ksp")) {
+        project.afterEvaluate {
+          project.tasks.named("kspKotlin").configure {
+            it.dependsOn(gen)
+          }
+        }
+      }
+
       project.tasks.configureEach {
         if (it.name.contains("dokka") || it.name == "sourcesJar" || it.name == "javaSourcesJar") it.dependsOn(gen)
       }
