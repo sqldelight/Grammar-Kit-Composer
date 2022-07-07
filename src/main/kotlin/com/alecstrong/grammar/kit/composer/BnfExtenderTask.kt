@@ -21,7 +21,7 @@ open class BnfExtenderTask : SourceTask() {
     source.files.forEach {
       GrammarFile(
         file = it,
-        outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin"))
+        outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin")),
       ).generateComposableGrammarFile()
     }
   }
@@ -29,7 +29,7 @@ open class BnfExtenderTask : SourceTask() {
 
 private class GrammarFile(
   private val file: File,
-  private val outputs: Outputs
+  private val outputs: Outputs,
 ) {
   private var overrides: ClassName? = null
 
@@ -116,8 +116,8 @@ private class GrammarFile(
         generateParserUtil(
           rules = rulesToExtend,
           inputFile = file,
-          superclass = generatedUtilSuperclass
-        )
+          superclass = generatedUtilSuperclass,
+        ),
       )
   }
 
@@ -163,7 +163,7 @@ private class GrammarFile(
     builder.append("fake $rule ::= $definition\n")
       .append(
         "${rule}_real ::= ${definition.extensionReplacements(keyFinder, privateRules)} {\n" +
-          "  elementType = ${rule.substringAfter("private ")}\n"
+          "  elementType = ${rule.substringAfter("private ")}\n",
       )
     pinFinder.find(definition)?.groupValues?.getOrNull(0)?.let {
       builder.append("  $it\n")
@@ -227,7 +227,7 @@ private class GrammarFile(
   private fun generateParserUtil(
     rules: Map<String, String>,
     inputFile: File,
-    superclass: ClassName
+    superclass: ClassName,
   ): String {
     val parserType = ClassName("com.intellij.lang.parser", "GeneratedParserUtilBase")
       .nestedClass("Parser")
@@ -251,12 +251,12 @@ private class GrammarFile(
               name = "createElement",
               type = LambdaTypeName.get(
                 parameters = arrayOf(astNodeType),
-                returnType = psiElementType
-              )
+                returnType = psiElementType,
+              ),
             )
               .mutable(true)
               .initializer("{ %T.Factory.createElement(it) }", elementTypeHolder)
-              .build()
+              .build(),
           )
           .apply {
             rules.forEach { (key, definition) ->
@@ -264,7 +264,7 @@ private class GrammarFile(
                 PropertySpec.builder(key, parserType.copy(nullable = true))
                   .mutable(true)
                   .initializer("null")
-                  .build()
+                  .build(),
               )
 
               resetMethod.addStatement("$key = null")
@@ -277,7 +277,7 @@ private class GrammarFile(
                   .addParameter(key, parserType)
                   .returns(Boolean::class)
                   .addStatement("return (this.$key ?: $key).parse(builder, level)")
-                  .build()
+                  .build(),
               )
 
               overrides?.let { overrides ->
@@ -289,7 +289,8 @@ private class GrammarFile(
                         "%T.$key = Parser { psiBuilder, i -> " +
                           "$key?.parse(psiBuilder, i) ?: %T.${key}_real(psiBuilder, i)" +
                           " }",
-                        overrides.util(), outputs.parserClass
+                        overrides.util(),
+                        outputs.parserClass,
                       )
                     }
                   }
@@ -310,13 +311,15 @@ private class GrammarFile(
                       }
                     }
                 """.trimIndent(),
-                overrides.util(), overrides.util(), AssertionError::class.asTypeName()
+                overrides.util(),
+                overrides.util(),
+                AssertionError::class.asTypeName(),
               )
 
               addFunction(overrideMethod.build())
             }
           }
-          .build()
+          .build(),
       )
       .build()
       .toString()
