@@ -27,7 +27,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         val outputs = getOutputs(
           bnf = bnfFile,
           outputDirectory = outputDirectory,
-          root = rootDir
+          root = rootDir,
         )
 
         generateParserTask.dependsOn(compose)

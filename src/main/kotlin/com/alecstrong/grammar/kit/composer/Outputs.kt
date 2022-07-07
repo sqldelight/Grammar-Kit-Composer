@@ -8,13 +8,13 @@ internal data class Outputs(
   val psiPackage: String,
   val parserClass: ClassName,
   val outputPackage: String,
-  val outputDirectory: File
+  val outputDirectory: File,
 )
 
 internal fun getOutputs(
   outputDirectory: File,
   bnf: File,
-  root: File
+  root: File,
 ): Outputs {
   val outputPackage = bnf.parentFile.toRelativeString(root).replace(File.separatorChar, '.')
   fun outputDirectory(): File = File(outputDirectory, outputPackage.replace('.', File.separatorChar))
@@ -25,6 +25,6 @@ internal fun getOutputs(
     psiPackage = "$outputPackage.psi",
     outputPackage = outputPackage,
     parserClass = ClassName(outputPackage, "${bnf.nameWithoutExtension.replaceFirstChar { it.titlecase() }}Parser"),
-    outputDirectory = outputDirectory()
+    outputDirectory = outputDirectory(),
   )
 }
