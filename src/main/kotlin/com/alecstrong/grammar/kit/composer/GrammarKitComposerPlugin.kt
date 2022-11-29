@@ -10,6 +10,16 @@ import java.io.File
 open class GrammarKitComposerPlugin : Plugin<Project> {
   override fun apply(project: Project) {
     project.pluginManager.apply(GrammarKitPlugin::class.java)
+
+    // https://youtrack.jetbrains.com/issue/IDEA-301677
+    val grammar = project.configurations.register("grammar") {
+      it.isCanBeResolved = true
+      it.isCanBeConsumed = false
+      it.defaultDependencies {
+        it.add(project.dependencies.create("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"))
+      }
+    }
+
     project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
       val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
       val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
@@ -38,6 +48,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         generateParserTask.purgeOldFiles.set(true)
         generateParserTask.group = "grammar"
 
+        generateParserTask.classpath(grammar)
         // https://github.com/JetBrains/gradle-grammar-kit-plugin/issues/108
         generateParserTask.sourceFile.convention(
           generateParserTask.source.map {
