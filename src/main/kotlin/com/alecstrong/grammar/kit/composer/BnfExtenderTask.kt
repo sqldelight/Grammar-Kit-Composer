@@ -10,14 +10,13 @@ import com.squareup.kotlinpoet.asTypeName
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.InputChanges
 import java.io.File
 
 open class BnfExtenderTask : SourceTask() {
   @get:OutputDirectory lateinit var outputDirectory: File
 
   @TaskAction
-  fun execute(inputs: InputChanges) {
+  fun execute() {
     source.files.forEach {
       GrammarFile(
         file = it,
