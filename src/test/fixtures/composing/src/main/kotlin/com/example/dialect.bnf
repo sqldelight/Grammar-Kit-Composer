@@ -1,0 +1,12 @@
+{
+  // Specify the parent parser.
+  overrides="com.example.Parser"
+  elementTypeClass = "com.alecstrong.sql.psi.core.SqlElementType"
+
+  psiClassPrefix = "Dialect"
+}
+overrides ::= foo
+
+foo ::= "FOOOOO" | {bar} {
+  override = true
+}
