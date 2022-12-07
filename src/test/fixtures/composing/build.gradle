@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
-    id("com.alecstrong.grammar.kit.composer") version "+"
+    id("com.alecstrong.grammar.kit.composer")
 }
 
 apply from: "../common.gradle"

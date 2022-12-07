@@ -8,7 +8,21 @@
   psiImplClassSuffix="Impl"
   psiPackage="com.example.psi"
   psiImplPackage="com.example.psi.impl"
+  tokens = [
+    space='regexp:\s+'
+    HELLO="HELLO"
+    ALEC="ALEC"
+    PHILIP="PHILIP"
+    GOODBYE="GOODBYE"
+  ]
 }
 
-hello_stmt ::= goodbye | "HELLO"
-goodbye ::= "Goodbye"
+sentence_stmt ::= greeting_stmt goodbye_stmt
+
+greeting_stmt ::= hello_stmt name_stmt
+hello_stmt ::= HELLO
+name_stmt ::= alec_stmt | philip_stmt
+alec_stmt ::= ALEC
+philip_stmt ::= PHILIP
+
+goodbye_stmt ::= GOODBYE

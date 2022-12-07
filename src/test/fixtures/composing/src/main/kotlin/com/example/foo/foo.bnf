@@ -1,0 +1,25 @@
+{
+  overrides="com.example.RootParser"
+  elementTypeClass="com.example.RootElementType"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Foo"
+  psiImplClassSuffix="Impl"
+
+  parserImports = [
+    "static com.example.RootTypes.HELLO"
+  ]
+}
+overrides ::= greeting_stmt
+
+greeting_stmt ::= hello_stmt_internal {
+  override = true
+  extends = "com.example.psi.impl.RootGreetingStmtImpl"
+  implements = "com.example.psi.RootGreetingStmt"
+}
+
+left hello_stmt_internal ::= HELLO {hello_stmt} "World" {
+  extends = "com.example.psi.impl.RootHelloStmtImpl"
+  implements = "com.example.psi.RootHelloStmt"
+}
