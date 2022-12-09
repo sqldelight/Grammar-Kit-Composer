@@ -266,7 +266,7 @@ private class GrammarFile(
                   .build(),
               )
 
-              resetMethod.addStatement("$key = null")
+              resetMethod.addStatement("%N = null", key)
 
               addFunction(
                 FunSpec.builder(key.toFunctionName())
@@ -275,7 +275,7 @@ private class GrammarFile(
                   .addParameter("level", Int::class)
                   .addParameter(key, parserType)
                   .returns(Boolean::class)
-                  .addStatement("return (this.$key ?: $key).parse(builder, level)")
+                  .addStatement("return (this.%N ?: %N).parse(builder, level)", key, key)
                   .build(),
               )
 
@@ -285,11 +285,14 @@ private class GrammarFile(
                   ?.let {
                     if (it == "true") {
                       overrideMethod.addStatement(
-                        "%T.$key = Parser { psiBuilder, i -> " +
-                          "$key?.parse(psiBuilder, i) ?: %T.${key}_real(psiBuilder, i)" +
+                        "%T.%N = Parser { psiBuilder, i -> " +
+                          "%N?.parse(psiBuilder, i) ?: %T.%N(psiBuilder, i)" +
                           " }",
                         overrides.util(),
+                        key,
+                        key,
                         outputs.parserClass,
+                        "${key}_real",
                       )
                     }
                   }
