@@ -22,24 +22,11 @@ class PluginTest {
       "clean",
       *tasks,
       "--stacktrace",
-      // "--configuration-cache",
     ).build()
 
     for (task in tasks) {
       assertEquals(TaskOutcome.SUCCESS, firstCleanRun.task(task)?.outcome)
     }
-/*
-val secondCachedRun = runner.withArguments(
-      *tasks,
-      "--stacktrace",
-      // "--configuration-cache",
-      ).build()
-
-      for (task in tasks) {
-        assertEquals(TaskOutcome.FROM_CACHE, secondCachedRun.task(task)?.outcome)
-      }
-    }
- */
   }
 
   @Test fun `multiple-bnf-files`() = testing("multiple-bnf-files", ":assemble")
