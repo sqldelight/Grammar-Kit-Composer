@@ -10,5 +10,11 @@
   psiImplPackage="com.example.psi.impl"
 }
 
-hello_stmt ::= goodbye | "HELLO"
-goodbye ::= "Goodbye"
+dialog ::= (hello_stmt sentences goodbye)*
+hello_stmt ::= "Hello" person
+person ::= "Alec" | "Philip"
+sentences ::= (sentence | extend_stmt)+
+sentence ::= "Nice" "work"
+goodbye ::= "Goodbye" person
+
+extend_stmt ::= NULL

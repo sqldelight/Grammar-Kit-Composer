@@ -11,12 +11,23 @@
     "static com.example.RootTypes.HELLO"
   ]
 }
-overrides ::= hello_stmt
+overrides ::= hello_stmt | extend_stmt
 
-hello_stmt ::= {goodbye} | HELLO | moin {
+hello_stmt ::= HELLO | moin {
   override = true
   implements = "com.example.psi.RootHelloStmt"
   extends = "com.example.psi.impl.RootHelloStmtImpl"
 }
 
 moin ::= "Moin"
+
+goodbye_internal ::= {goodbye} {
+  implements = "com.example.psi.RootGoodbye"
+  extends = "com.example.psi.impl.RootGoodbyeImpl"
+}
+
+extend_stmt ::= goodbye_internal "Greetings" {person} {
+  override = true
+  implements = "com.example.psi.RootExtendStmt"
+  implements = "com.example.psi.impl.RootExtendStmtImpl"
+}

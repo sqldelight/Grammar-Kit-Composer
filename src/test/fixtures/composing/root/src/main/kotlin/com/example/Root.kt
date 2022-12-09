@@ -1,11 +1,11 @@
 package com.example
 
-import com.example.psi.RootGoodbye
 import com.example.psi.RootHelloStmt
+import com.example.psi.RootPerson
 
 abstract class Root : RootHelloStmt {
   fun hello() {
-    val goodbye: RootGoodbye? = goodbye
+    val goodbye: RootPerson = person
     println(goodbye)
   }
 }
