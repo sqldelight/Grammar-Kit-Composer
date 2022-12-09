@@ -23,7 +23,7 @@ class PluginTest {
       *tasks,
       "--stacktrace",
       // "--configuration-cache",
-      ).build()
+    ).build()
 
     for (task in tasks) {
       assertEquals(TaskOutcome.SUCCESS, firstCleanRun.task(task)?.outcome)
@@ -42,7 +42,7 @@ val secondCachedRun = runner.withArguments(
  */
   }
 
-  @Test fun `non-composing`() = testing("non-composing", ":assemble")
+  @Test fun `multiple-bnf-files`() = testing("multiple-bnf-files", ":assemble")
 
   @Test fun composing() = testing("composing", ":assemble")
 

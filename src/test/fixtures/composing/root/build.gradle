@@ -6,3 +6,11 @@ plugins {
 repositories {
     mavenCentral()
 }
+
+grammarKit {
+    intellijRelease.set(libs.versions.intelliJ.get())
+}
+
+dependencies {
+    compileOnly(libs.intelliJ)
+}
