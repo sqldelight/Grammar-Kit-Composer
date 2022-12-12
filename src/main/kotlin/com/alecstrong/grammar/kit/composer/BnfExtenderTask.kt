@@ -7,22 +7,67 @@ import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkerExecutor
 import java.io.File
+import javax.inject.Inject
 
-open class BnfExtenderTask : SourceTask() {
-  @get:OutputDirectory lateinit var outputDirectory: File
+@CacheableTask
+abstract class BnfExtenderTask : DefaultTask() {
+  @get:PathSensitive(PathSensitivity.RELATIVE)
+  @get:InputFile
+  abstract val bnfFile: RegularFileProperty
+
+  @get:Internal
+  abstract val root: Property<String>
+
+  @get:OutputDirectory
+  abstract val outputDirectory: DirectoryProperty
+
+  @get:Inject
+  abstract val workerExecutor: WorkerExecutor
 
   @TaskAction
   fun execute() {
-    source.files.forEach {
-      GrammarFile(
-        file = it,
-        outputs = getOutputs(outputDirectory, it, project.file("src${File.separatorChar}main${File.separatorChar}kotlin")),
-      ).generateComposableGrammarFile()
+    val queue = workerExecutor.noIsolation()
+    val bnfFile = bnfFile.asFile.get()
+    val root = root.get()
+    val outputPackage: String = bnfFile.outputPackage(root)
+    val outputPackageDir = outputDirectory.dir(outputPackage)
+
+    queue.submit(ComposeGrammar::class.java) {
+      it.inputFile.set(bnfFile)
+
+      it.outputDirectory.set(outputPackageDir)
+      it.outputFile.set(outputDirectory.file(bnfFile.generatedBnfFile))
+      it.bnfFileName.set(bnfFile.nameWithoutExtension)
+
+      val outputPackageString = outputPackage.replace("/", ".")
+      it.psiPackage.set(outputPackageString.psi)
+      it.outputPackage.set(outputPackageString)
     }
+  }
+}
+
+internal abstract class ComposeGrammar : WorkAction<Outputs> {
+  override fun execute() {
+    val outputs: Outputs = parameters
+
+    GrammarFile(
+      file = outputs.inputFile.asFile.get(),
+      outputs = outputs,
+    ).generateComposableGrammarFile()
   }
 }
 
@@ -99,17 +144,17 @@ private class GrammarFile(
       imports.joinToString(separator = "\n", prefix = "parserImports = [\n", postfix = "\n]\n").prependIndent("  ") + header
     }
 
-    header = "{\n  parserUtilClass=\"${outputs.outputPackage}.${file.parserUtilName()}\"\n" +
+    header = "{\n  parserUtilClass=\"${outputs.outputPackage.get()}.${file.parserUtilName()}\"\n" +
       "  parserClass=\"${outputs.parserClass}\"\n" +
-      "  elementTypeHolderClass=\"${outputs.psiPackage}.${file.elementTypeHolderName()}\"\n" +
-      "  psiPackage=\"${outputs.psiPackage}\"\n" +
-      "  psiImplPackage=\"${outputs.psiPackage}.impl\"\n" +
+      "  elementTypeHolderClass=\"${outputs.psiPackage.get()}.${file.elementTypeHolderName()}\"\n" +
+      "  psiPackage=\"${outputs.psiPackage.get()}\"\n" +
+      "  psiImplPackage=\"${outputs.psiPackage.get()}.impl\"\n" +
       header
 
-    outputs.outputFile.createIfAbsent()
+    outputs.outputFile.get().asFile.createIfAbsent()
       .writeText("$header\n$newRules\n$unextendableRuleDefinitions")
 
-    File(outputs.outputDirectory.path, "${file.parserUtilName()}.kt")
+    outputs.outputDirectory.file("${file.parserUtilName()}.kt").get().asFile
       .createIfAbsent()
       .writeText(
         generateParserUtil(
@@ -230,7 +275,7 @@ private class GrammarFile(
   ): String {
     val parserType = ClassName("com.intellij.lang.parser", "GeneratedParserUtilBase")
       .nestedClass("Parser")
-    val elementTypeHolder = ClassName(outputs.psiPackage, inputFile.elementTypeHolderName())
+    val elementTypeHolder = ClassName(outputs.psiPackage.get(), inputFile.elementTypeHolderName())
     val astNodeType = ClassName("com.intellij.lang", "ASTNode")
     val psiElementType = ClassName("com.intellij.psi", "PsiElement")
 
@@ -241,7 +286,7 @@ private class GrammarFile(
     val resetMethod = FunSpec.builder("reset")
       .addStatement("createElement = { %T.Factory.createElement(it) }", elementTypeHolder)
 
-    return FileSpec.builder(outputs.outputPackage, inputFile.parserUtilName())
+    return FileSpec.builder(outputs.outputPackage.get(), inputFile.parserUtilName())
       .addType(
         TypeSpec.objectBuilder(inputFile.parserUtilName())
           .superclass(superclass)

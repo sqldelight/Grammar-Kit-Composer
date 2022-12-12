@@ -2,13 +2,19 @@ package com.alecstrong.grammar.kit.composer
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.tasks.SourceSetContainer
 import org.jetbrains.grammarkit.GrammarKitPlugin
+import org.jetbrains.grammarkit.path
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import java.io.File
 
 open class GrammarKitComposerPlugin : Plugin<Project> {
   override fun apply(project: Project) {
+    require(project.pluginManager.hasPlugin("org.jetbrains.kotlin.jvm")) {
+      "You need to apply the Kotlin/JVM plugin before Grammar-Kit-Composer."
+    }
+
     project.pluginManager.apply(GrammarKitPlugin::class.java)
 
     // https://youtrack.jetbrains.com/issue/IDEA-301677
@@ -20,15 +26,15 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
       }
     }
 
-    project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
-      val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
-      val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
-      val outputDirectory = File(project.buildDir, "grammars${File.separatorChar}$name")
+    val rootDir = project.layout.projectDirectory.dir("src${File.separatorChar}main${File.separatorChar}kotlin")
+    rootDir.forBnfFiles { bnfFile ->
+      val name = bnfFile.toRelativeString(rootDir.asFile).replace(File.separatorChar, '_').dropLast(4)
+      val outputDirectory = project.layout.buildDirectory.dir("grammars${File.separatorChar}$name")
 
       val compose = project.tasks.register("createComposable${name}Grammar", BnfExtenderTask::class.java) {
-        it.source(bnfFile)
-        it.outputDirectory = outputDirectory
-        it.include("**${File.separatorChar}*.bnf")
+        it.bnfFile.set(bnfFile)
+        it.root.set(rootDir.asFile.absolutePath)
+        it.outputDirectory.set(outputDirectory)
         it.group = "grammar"
         it.description = "Generate composable grammars from .bnf files."
       }
@@ -37,14 +43,14 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         val outputs = getOutputs(
           bnf = bnfFile,
           outputDirectory = outputDirectory,
-          root = rootDir,
+          root = rootDir.asFile.absolutePath,
         )
 
         generateParserTask.dependsOn(compose)
         generateParserTask.source.set(outputs.outputFile.path)
         generateParserTask.targetRoot.set(outputDirectory.path)
-        generateParserTask.pathToParser.set(outputs.parserClass.toString().replace('.', File.separatorChar))
-        generateParserTask.pathToPsiRoot.set(outputs.psiPackage.replace('.', File.separatorChar))
+        generateParserTask.pathToParser.set(outputs.parserClassString)
+        generateParserTask.pathToPsiRoot.set(outputs.psiPackage)
         generateParserTask.purgeOldFiles.set(true)
         generateParserTask.group = "grammar"
 
@@ -73,7 +79,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
       }
 
       (project.extensions.getByName("sourceSets") as SourceSetContainer)
-        .getByName("main").java.srcDir(outputDirectory.relativeTo(project.projectDir))
+        .getByName("main").java.srcDir(outputDirectory.map { it.asFile.relativeTo(project.projectDir) })
 
       project.tasks.named("compileKotlin").configure {
         it.dependsOn(gen)
@@ -93,10 +99,9 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
     }
   }
 
-  private fun File.forBnfFiles(action: (bnfFile: File) -> Unit) {
-    listFiles()?.forEach {
-      if (it.isDirectory) it.forBnfFiles(action)
-      if (it.extension == "bnf") action(it)
-    }
+  private fun Directory.forBnfFiles(action: (bnfFile: File) -> Unit) {
+    asFileTree.filter {
+      it.extension == "bnf"
+    }.forEach(action)
   }
 }
