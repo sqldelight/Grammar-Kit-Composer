@@ -49,7 +49,3 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 apply from: "$rootDir/gradle/gradle-mvn-push.gradle"
-
-tasks.test {
-  dependsOn(tasks.named("publishAllPublicationsToInstallLocallyRepository"))
-}

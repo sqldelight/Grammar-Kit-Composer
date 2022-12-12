@@ -1,6 +1,6 @@
 [versions]
-# 2021.2.2 https://youtrack.jetbrains.com/articles/IDEA-A-216498314
-intelliJ = "211.7442.40"
+# 2022.3 https://youtrack.jetbrains.com/articles/IDEA-A-2100661406/IntelliJ-IDEA-2022.3-223.7571.182-build-Release-Notes
+intelliJ = "223.7571.182"
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version = "1.12.0" }
