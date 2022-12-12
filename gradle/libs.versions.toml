@@ -1,6 +1,6 @@
 [versions]
-# 2022.3 https://youtrack.jetbrains.com/articles/IDEA-A-2100661406/IntelliJ-IDEA-2022.3-223.7571.182-build-Release-Notes
-intelliJ = "223.7571.182"
+# Not 2022.3 but same version used by sql-psi and sqldelight
+intelliJ = "221.6008.13" # Electric Eel (2022.1.1) RC 1 (see https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html)
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version = "1.12.0" }
