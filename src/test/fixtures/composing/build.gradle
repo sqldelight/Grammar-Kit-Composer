@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
-    id("com.alecstrong.grammar.kit.composer")
+    id("com.alecstrong.grammar.kit.composer") version "+"
 }
 
 repositories {
