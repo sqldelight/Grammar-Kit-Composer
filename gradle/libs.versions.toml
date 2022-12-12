@@ -6,6 +6,7 @@ intelliJ = "223.7571.182"
 kotlinPoet = { module = "com.squareup:kotlinpoet", version = "1.12.0" }
 grammarKitPlugin = { module = "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin", version = "2022.3"}
 intelliJ = { module = "com.jetbrains.intellij.platform:analysis-impl", version.ref = "intelliJ" }
+coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "1.7.22" }
