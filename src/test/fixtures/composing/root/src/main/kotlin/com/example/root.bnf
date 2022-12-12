@@ -1,0 +1,14 @@
+{
+  elementTypeClass="com.example.RootElementType"
+  parserUtilClass="com.example.RootParserUtilClass"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Root"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.example.psi"
+  psiImplPackage="com.example.psi.impl"
+}
+
+hello_stmt ::= goodbye | "HELLO"
+goodbye ::= "Goodbye"

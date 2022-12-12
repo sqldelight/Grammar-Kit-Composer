@@ -1,0 +1,17 @@
+{
+  parserClass="com.example.FooParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Foo"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.example.psi"
+  psiImplPackage="com.example.psi.impl"
+
+  elementTypeHolderClass="com.example.FooTypes"
+  elementTypeClass="com.example.FooElementType"
+  tokenTypeClass="com.example.FooTokenType"
+}
+
+hello ::= goodbye | "Hello"
+goodbye ::= "Goodbye"

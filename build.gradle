@@ -14,6 +14,7 @@ repositories {
 spotless {
   kotlin {
     target "**/*.kt"
+    targetExclude "**/build/grammar/**/*.*", "**/generated/**/*.*", "src/test/fixtures/**/build/grammars/**/*.*"
     ktlint('0.46.1').editorConfigOverride([
       "indent_size": "2",
        "disabled_rules": "package-name",
@@ -37,6 +38,9 @@ gradlePlugin {
 dependencies {
   implementation libs.kotlinPoet
   implementation libs.grammarKitPlugin
+
+  testImplementation gradleTestKit()
+  testImplementation "org.jetbrains.kotlin:kotlin-test"
 }
 
 tasks.withType(JavaCompile).configureEach {

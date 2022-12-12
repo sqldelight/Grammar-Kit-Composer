@@ -16,7 +16,11 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'adopt'
-        java-version: 11
+        java-version: 17
 
     - name: Build the project
       run: ./gradlew build
+    - uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        path: build/reports/tests/test
