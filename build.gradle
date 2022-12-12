@@ -43,6 +43,11 @@ dependencies {
   testImplementation "org.jetbrains.kotlin:kotlin-test"
 }
 
+tasks.withType(JavaCompile).configureEach {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+}
+
 apply from: "$rootDir/gradle/gradle-mvn-push.gradle"
 
 tasks.test {
