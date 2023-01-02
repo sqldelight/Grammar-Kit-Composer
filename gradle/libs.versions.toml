@@ -10,6 +10,6 @@ coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "1.8.0" }
-spotless = { id = "com.diffplug.spotless", version = "6.12.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.12.1" }
 publish = { id = "com.vanniktech.maven.publish", version = "0.23.1" }
 dokka = { id = "org.jetbrains.dokka", version = "1.7.20" }
