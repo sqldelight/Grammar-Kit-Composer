@@ -11,16 +11,13 @@ import java.io.File
 
 open class GrammarKitComposerPlugin : Plugin<Project> {
   override fun apply(project: Project) {
-    require(project.pluginManager.hasPlugin("org.jetbrains.kotlin.jvm")) {
-      "You need to apply the Kotlin/JVM plugin before Grammar-Kit-Composer."
-    }
-
     project.pluginManager.apply(GrammarKitPlugin::class.java)
 
     // https://youtrack.jetbrains.com/issue/IDEA-301677
     val grammar = project.configurations.register("grammar") {
       it.isCanBeResolved = true
       it.isCanBeConsumed = false
+      it.isVisible = false
       it.defaultDependencies {
         it.add(project.dependencies.create("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"))
       }
@@ -78,14 +75,18 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         )
       }
 
-      (project.extensions.getByName("sourceSets") as SourceSetContainer)
-        .getByName("main").java.srcDir(outputDirectory.map { it.asFile.relativeTo(project.projectDir) })
-
-      project.tasks.named("compileKotlin").configure {
-        it.dependsOn(gen)
+      project.plugins.withId("org.gradle.java") {
+        (project.extensions.getByName("sourceSets") as SourceSetContainer)
+          .getByName("main").java.srcDir(outputDirectory.map { it.asFile.relativeTo(project.projectDir) })
       }
 
-      if (project.plugins.hasPlugin("com.google.devtools.ksp")) {
+      project.plugins.withId("org.jetbrains.kotlin.jvm") {
+        project.tasks.named("compileKotlin").configure {
+          it.dependsOn(gen)
+        }
+      }
+
+      project.plugins.withId("com.google.devtools.ksp") {
         project.afterEvaluate {
           project.tasks.named("kspKotlin").configure {
             it.dependsOn(gen)
