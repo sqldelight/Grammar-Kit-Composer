@@ -41,7 +41,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         )
 
         generateParserTask.dependsOn(compose)
-        generateParserTask.source.set(outputs.outputFile.path)
+        generateParserTask.sourceFile.set(outputs.outputFile)
         generateParserTask.targetRoot.set(outputDirectory.path)
         generateParserTask.pathToParser.set(outputs.parserClass.toString().replace('.', File.separatorChar))
         generateParserTask.pathToPsiRoot.set(outputs.psiPackage.replace('.', File.separatorChar))
@@ -49,29 +49,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         generateParserTask.group = "grammar"
 
         generateParserTask.classpath(grammar)
-        // https://github.com/JetBrains/gradle-grammar-kit-plugin/issues/108
-        generateParserTask.sourceFile.convention(
-          generateParserTask.source.map {
-            project.layout.projectDirectory.file(it)
-          },
-        )
-        generateParserTask.targetRootOutputDir.convention(
-          generateParserTask.targetRoot.map {
-            project.layout.projectDirectory.dir(it)
-          },
-        )
-        generateParserTask.parserFile.convention(
-          generateParserTask.pathToParser.map {
-            project.layout.projectDirectory.file("${generateParserTask.targetRoot.get()}/$it")
-          },
-        )
-        generateParserTask.psiDir.convention(
-          generateParserTask.pathToPsiRoot.map {
-            project.layout.projectDirectory.dir("${generateParserTask.targetRoot.get()}/$it")
-          },
-        )
       }
-
       (project.extensions.getByName("sourceSets") as SourceSetContainer)
         .getByName("main").java.srcDir(outputDirectory.relativeTo(project.projectDir))
 
