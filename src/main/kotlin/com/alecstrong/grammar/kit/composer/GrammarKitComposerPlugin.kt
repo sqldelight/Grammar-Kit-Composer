@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.tasks.SourceSetContainer
 import org.jetbrains.grammarkit.GrammarKitPlugin
-import org.jetbrains.grammarkit.path
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import java.io.File
 
@@ -45,7 +44,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
 
         generateParserTask.dependsOn(compose)
         generateParserTask.sourceFile.set(outputs.outputFile)
-        generateParserTask.targetRoot.set(outputDirectory.path)
+        generateParserTask.targetRoot.set(outputDirectory.map { it.asFile.canonicalPath })
         generateParserTask.pathToParser.set(outputs.parserClassString)
         generateParserTask.pathToPsiRoot.set(outputs.psiPackage)
         generateParserTask.purgeOldFiles.set(true)
