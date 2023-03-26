@@ -53,18 +53,18 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         generateParserTask.classpath(grammar)
       }
 
-      project.plugins.withId("org.gradle.java") {
+      project.pluginManager.withPlugin("org.gradle.java") {
         (project.extensions.getByName("sourceSets") as SourceSetContainer)
           .getByName("main").java.srcDir(outputDirectory.map { it.asFile.relativeTo(project.projectDir) })
       }
 
-      project.plugins.withId("org.jetbrains.kotlin.jvm") {
+      project.pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
         project.tasks.named("compileKotlin").configure {
           it.dependsOn(gen)
         }
       }
 
-      project.plugins.withId("com.google.devtools.ksp") {
+      project.pluginManager.withPlugin("com.google.devtools.ksp") {
         project.afterEvaluate {
           project.tasks.named("kspKotlin").configure {
             it.dependsOn(gen)
