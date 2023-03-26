@@ -2,6 +2,7 @@ package com.alecstrong.grammar.kit.composer
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.tasks.SourceSetContainer
 import org.jetbrains.grammarkit.GrammarKitPlugin
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
@@ -15,20 +16,21 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
     val grammar = project.configurations.register("grammar") {
       it.isCanBeResolved = true
       it.isCanBeConsumed = false
+      it.isVisible = false
       it.defaultDependencies {
         it.add(project.dependencies.create("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"))
       }
     }
 
-    project.file("src${File.separatorChar}main${File.separatorChar}kotlin").forBnfFiles { bnfFile ->
-      val rootDir = project.file("src${File.separatorChar}main${File.separatorChar}kotlin")
-      val name = bnfFile.toRelativeString(rootDir).replace(File.separatorChar, '_').dropLast(4)
-      val outputDirectory = File(project.buildDir, "grammars${File.separatorChar}$name")
+    val rootDir = project.layout.projectDirectory.dir("src${File.separatorChar}main${File.separatorChar}kotlin")
+    rootDir.forBnfFiles { bnfFile ->
+      val name = bnfFile.toRelativeString(rootDir.asFile).replace(File.separatorChar, '_').dropLast(4)
+      val outputDirectory = project.layout.buildDirectory.dir("grammars${File.separatorChar}$name")
 
       val compose = project.tasks.register("createComposable${name}Grammar", BnfExtenderTask::class.java) {
-        it.source(bnfFile)
-        it.outputDirectory = outputDirectory
-        it.include("**${File.separatorChar}*.bnf")
+        it.bnfFile.set(bnfFile)
+        it.root.set(rootDir.asFile.absolutePath)
+        it.outputDirectory.set(outputDirectory)
         it.group = "grammar"
         it.description = "Generate composable grammars from .bnf files."
       }
@@ -37,27 +39,32 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
         val outputs = getOutputs(
           bnf = bnfFile,
           outputDirectory = outputDirectory,
-          root = rootDir,
+          root = rootDir.asFile.absolutePath,
         )
 
         generateParserTask.dependsOn(compose)
         generateParserTask.sourceFile.set(outputs.outputFile)
-        generateParserTask.targetRoot.set(outputDirectory.path)
-        generateParserTask.pathToParser.set(outputs.parserClass.toString().replace('.', File.separatorChar))
-        generateParserTask.pathToPsiRoot.set(outputs.psiPackage.replace('.', File.separatorChar))
+        generateParserTask.targetRoot.set(outputDirectory.map { it.asFile.canonicalPath })
+        generateParserTask.pathToParser.set(outputs.parserClassString)
+        generateParserTask.pathToPsiRoot.set(outputs.psiPackage)
         generateParserTask.purgeOldFiles.set(true)
         generateParserTask.group = "grammar"
 
         generateParserTask.classpath(grammar)
       }
-      (project.extensions.getByName("sourceSets") as SourceSetContainer)
-        .getByName("main").java.srcDir(outputDirectory.relativeTo(project.projectDir))
 
-      project.tasks.named("compileKotlin").configure {
-        it.dependsOn(gen)
+      project.pluginManager.withPlugin("org.gradle.java") {
+        (project.extensions.getByName("sourceSets") as SourceSetContainer)
+          .getByName("main").java.srcDir(outputDirectory.map { it.asFile.relativeTo(project.projectDir) })
       }
 
-      if (project.plugins.hasPlugin("com.google.devtools.ksp")) {
+      project.pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+        project.tasks.named("compileKotlin").configure {
+          it.dependsOn(gen)
+        }
+      }
+
+      project.pluginManager.withPlugin("com.google.devtools.ksp") {
         project.afterEvaluate {
           project.tasks.named("kspKotlin").configure {
             it.dependsOn(gen)
@@ -71,10 +78,9 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
     }
   }
 
-  private fun File.forBnfFiles(action: (bnfFile: File) -> Unit) {
-    listFiles()?.forEach {
-      if (it.isDirectory) it.forBnfFiles(action)
-      if (it.extension == "bnf") action(it)
-    }
+  private fun Directory.forBnfFiles(action: (bnfFile: File) -> Unit) {
+    asFileTree.filter {
+      it.extension == "bnf"
+    }.forEach(action)
   }
 }
