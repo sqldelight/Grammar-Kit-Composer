@@ -4,7 +4,7 @@ intelliJ = "221.6008.13" # Electric Eel (2022.1.1) RC 1 (see https://plugins.jet
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version = "1.14.2" }
-grammarKitPlugin = { module = "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin", version = "2022.3.1"}
+grammarKitPlugin = { module = "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin", version = "2022.3.2"}
 intelliJ = { module = "com.jetbrains.intellij.platform:analysis-impl", version.ref = "intelliJ" }
 coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
 
