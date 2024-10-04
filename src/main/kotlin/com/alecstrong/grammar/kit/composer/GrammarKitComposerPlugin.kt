@@ -44,7 +44,7 @@ open class GrammarKitComposerPlugin : Plugin<Project> {
 
         generateParserTask.dependsOn(compose)
         generateParserTask.sourceFile.set(outputs.outputFile)
-        generateParserTask.targetRoot.set(outputDirectory.map { it.asFile.canonicalPath })
+        generateParserTask.targetRootOutputDir.set(outputDirectory)
         generateParserTask.pathToParser.set(outputs.parserClassString)
         generateParserTask.pathToPsiRoot.set(outputs.psiPackage)
         generateParserTask.purgeOldFiles.set(true)
