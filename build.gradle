@@ -29,7 +29,7 @@ spotless {
 gradlePlugin {
   plugins {
     grammarKitComposer {
-      id = 'com.alecstrong.grammar.kit.composer'
+      id = 'app.cash.grammarkit-composer'
       implementationClass = 'com.alecstrong.grammar.kit.composer.GrammarKitComposerPlugin'
     }
   }
