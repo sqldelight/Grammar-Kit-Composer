@@ -2,7 +2,7 @@ plugins {
   alias(libs.plugins.kotlinJvm)
   id 'java-gradle-plugin'
   alias(libs.plugins.spotless)
-  alias(libs.plugins.publish) apply false
+  alias(libs.plugins.publish)
   alias(libs.plugins.dokka)
 }
 
@@ -45,4 +45,11 @@ dependencies {
 
 kotlin.jvmToolchain(17)
 
-apply from: "$rootDir/gradle/gradle-mvn-push.gradle"
+publishing {
+  repositories {
+    maven {
+      name = "installLocally"
+      url = "${rootProject.buildDir}/localMaven"
+    }
+  }
+}

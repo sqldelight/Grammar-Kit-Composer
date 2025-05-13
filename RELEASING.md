@@ -1,14 +1,32 @@
-Releasing
-=========
+# Releasing
 
- 1. Change the version in `gradle.properties` to a non-SNAPSHOT verson.
- 2. `git commit -am "Prepare for release X.Y.Z."` (where X.Y.Z is the new version)
- 3. `./gradlew clean publish --no-parallel`.
- 4. Visit [Sonatype Nexus](https://oss.sonatype.org/) and promote the artifact.
- 5. `git tag -a X.Y.Z -m "Version X.Y.Z"` (where X.Y.Z is the new version)
- 6. Update the `gradle.properties` to the next SNAPSHOT version.
- 7. `git commit -am "Prepare next development version."`
- 8. `git push && git push --tags`
+1. Update the `VERSION_NAME` in `gradle.properties` to the release version.
 
-If step 4 fails, drop the Sonatype repo, fix the problem, commit, and start again at step 3.
+2. Commit
 
+   ```
+   $ git commit -am "Prepare version X.Y.Z"
+   ```
+
+3. Tag
+
+   ```
+   $ git tag -am "Version X.Y.Z" X.Y.Z
+   ```
+
+4. Update the `VERSION_NAME` in `gradle.properties` to the next "SNAPSHOT" version.
+
+5. Commit
+
+   ```
+   $ git commit -am "Prepare next development version"
+   ```
+
+6. Push!
+
+   ```
+   $ git push && git push --tags
+   ```
+
+   This will trigger a GitHub Action workflow which will create a GitHub release and upload the
+   release artifacts to Maven Central.
