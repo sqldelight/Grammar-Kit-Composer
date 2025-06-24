@@ -9,7 +9,7 @@ intelliJ = { module = "com.jetbrains.intellij.platform:analysis-impl", version.r
 coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
 
 [plugins]
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.21" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.0" }
 spotless = { id = "com.diffplug.spotless", version = "7.0.4" }
 publish = { id = "com.vanniktech.maven.publish", version = "0.33.0" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
