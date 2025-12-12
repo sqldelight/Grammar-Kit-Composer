@@ -1,6 +1,7 @@
 package com.alecstrong.grammar.kit.composer
 
 import com.squareup.kotlinpoet.ClassName
+import java.io.File
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
@@ -8,7 +9,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.workers.WorkParameters
-import java.io.File
 
 internal interface Outputs : WorkParameters {
   val inputFile: RegularFileProperty
@@ -20,12 +20,11 @@ internal interface Outputs : WorkParameters {
   val outputDirectory: DirectoryProperty
 }
 
-internal val Outputs.parserClass get() = getParserClass(outputPackage.get(), bnfFileName.get())
+internal val Outputs.parserClass
+  get() = getParserClass(outputPackage.get(), bnfFileName.get())
 
-private fun getParserClass(
-  outputPackage: String,
-  bnfFileName: String,
-) = ClassName(outputPackage, "${bnfFileName.replaceFirstChar { it.titlecase() }}Parser")
+private fun getParserClass(outputPackage: String, bnfFileName: String) =
+  ClassName(outputPackage, "${bnfFileName.replaceFirstChar { it.titlecase() }}Parser")
 
 internal fun getOutputs(
   outputDirectory: Provider<Directory>,
@@ -35,12 +34,16 @@ internal fun getOutputs(
   val outputPackage = bnf.outputPackage(root)
   return ParserOutputs(
     outputFile = outputDirectory.map { it.file(bnf.generatedBnfFile) },
-    parserClassString = getParserClass(outputPackage, bnf.nameWithoutExtension).toString().replace('.', File.separatorChar),
+    parserClassString =
+      getParserClass(outputPackage, bnf.nameWithoutExtension)
+        .toString()
+        .replace('.', File.separatorChar),
     psiPackage = outputPackage.psi.replace('.', File.separatorChar),
   )
 }
 
-internal val String.psi get() = "$this.psi"
+internal val String.psi
+  get() = "$this.psi"
 
 internal data class ParserOutputs(
   val outputFile: Provider<RegularFile>,
@@ -48,6 +51,8 @@ internal data class ParserOutputs(
   val psiPackage: String,
 )
 
-internal val File.generatedBnfFile get() = "${nameWithoutExtension}_gen.bnf"
+internal val File.generatedBnfFile
+  get() = "${nameWithoutExtension}_gen.bnf"
 
-internal fun File.outputPackage(root: String): String = parentFile.toRelativeString(File(root)).replace(File.separatorChar, '.')
+internal fun File.outputPackage(root: String): String =
+  parentFile.toRelativeString(File(root)).replace(File.separatorChar, '.')
