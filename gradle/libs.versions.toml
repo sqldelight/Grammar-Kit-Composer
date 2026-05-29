@@ -7,7 +7,7 @@ kotlinPoet = { module = "com.squareup:kotlinpoet", version = "2.3.0" }
 grammarKitPlugin = { module = "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin", version = "2023.3.0.3" }
 intelliJ = { module = "com.jetbrains.intellij.platform:analysis-impl", version.ref = "intelliJ" }
 coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0"
-ktfmt = "com.facebook:ktfmt:0.62"
+ktfmt = "com.facebook:ktfmt:0.63"
 
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version = "2.3.21" }
