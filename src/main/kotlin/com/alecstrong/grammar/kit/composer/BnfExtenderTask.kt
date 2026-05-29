@@ -140,7 +140,9 @@ private class GrammarFile(private val file: File, private val outputs: Outputs) 
       if (header.contains("parserImports=[")) {
         header.replace(
           "parserImports=[",
-          imports.joinToString(separator = "\n", prefix = "parserImports = [\n").prependIndent("  "),
+          imports
+            .joinToString(separator = "\n", prefix = "parserImports = [\n")
+            .prependIndent("  "),
         )
       } else {
         imports
@@ -325,7 +327,10 @@ private class GrammarFile(private val file: File, private val outputs: Outputs) 
             PropertySpec.builder(
                 name = "createElement",
                 type =
-                  LambdaTypeName.get(parameters = arrayOf(astNodeType), returnType = psiElementType),
+                  LambdaTypeName.get(
+                    parameters = arrayOf(astNodeType),
+                    returnType = psiElementType,
+                  ),
               )
               .mutable(true)
               .initializer("{ %T.Factory.createElement(it) }", elementTypeHolder)
