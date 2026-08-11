@@ -24,7 +24,7 @@ spotless {
 gradlePlugin {
   plugins {
     grammarKitComposer {
-      id = 'app.cash.grammarkit-composer'
+      id = 'dev.lysine.grammarkit-composer'
       implementationClass = 'com.alecstrong.grammar.kit.composer.GrammarKitComposerPlugin'
     }
   }
