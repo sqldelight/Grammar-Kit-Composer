@@ -32,7 +32,7 @@ gradlePlugin {
 
 dependencies {
   implementation libs.kotlinPoet
-  implementation libs.grammarKitPlugin
+  implementation libs.intellijPlatformPlugin
 
   testImplementation gradleTestKit()
   testImplementation "org.jetbrains.kotlin:kotlin-test"

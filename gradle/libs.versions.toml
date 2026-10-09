@@ -1,10 +1,10 @@
 [versions]
-# Not 2022.3 but same version used by sql-psi and sqldelight
-intelliJ = "221.6008.13" # Electric Eel (2022.1.1) RC 1 (see https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html)
+# Same IntelliJ build as sql-psi and sqldelight (see https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html)
+intelliJ = "233.14808.21" # Jellyfish | 2023.3.1
 
 [libraries]
 kotlinPoet = { module = "com.squareup:kotlinpoet", version = "2.4.0" }
-grammarKitPlugin = { module = "org.jetbrains.intellij.plugins:gradle-grammarkit-plugin", version = "2023.3.0.4" }
+intellijPlatformPlugin = { module = "org.jetbrains.intellij.platform:intellij-platform-gradle-plugin", version = "2.19.0" }
 intelliJ = { module = "com.jetbrains.intellij.platform:analysis-impl", version.ref = "intelliJ" }
 coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0"
 ktfmt = "com.facebook:ktfmt:0.64"
