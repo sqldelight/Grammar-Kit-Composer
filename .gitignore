@@ -7,3 +7,4 @@ lib/
 build/
 .DS_Store
 .kotlin
+src/test/fixtures/*/gradle/
