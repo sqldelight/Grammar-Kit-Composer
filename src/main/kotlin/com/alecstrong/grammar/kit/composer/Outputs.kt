@@ -37,7 +37,7 @@ internal fun getOutputs(
     parserClassString =
       getParserClass(outputPackage, bnf.nameWithoutExtension)
         .toString()
-        .replace('.', File.separatorChar),
+        .replace('.', File.separatorChar) + ".java",
     psiPackage = outputPackage.psi.replace('.', File.separatorChar),
   )
 }
